@@ -1,0 +1,9 @@
+{
+  "name": "jp.amamagi.package-overrider",
+  "version": "0.0.1",
+  "displayName": "Package Overrider",
+  "author": {
+    "name": "amamagi"
+  },
+  "description": "Override Unity Package Manager packages with local packages for development."
+}
