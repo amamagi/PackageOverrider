@@ -238,15 +238,15 @@ namespace PackageOverrider
         {
             EditorGUILayout.BeginHorizontal();
 
-            if (GUILayout.Button("Embed to Packages/", GUILayout.Height(20)))
-            {
-                EmbedPackage(entry);
-            }
-
             if (GUILayout.Button("Enable Override", GUILayout.Height(20)))
             {
                 entry.isOverridden = true;
                 _hasUnsavedChanges = true;
+            }
+
+            if (GUILayout.Button("Embed to Packages/", GUILayout.Height(20)))
+            {
+                EmbedPackage(entry);
             }
 
             EditorGUILayout.EndHorizontal();
@@ -260,11 +260,6 @@ namespace PackageOverrider
             {
                 entry.isOverridden = false;
                 _hasUnsavedChanges = true;
-            }
-
-            if (GUILayout.Button("Embed to Packages/", GUILayout.Height(20)))
-            {
-                EmbedPackage(entry);
             }
 
             EditorGUILayout.EndHorizontal();
@@ -414,7 +409,10 @@ namespace PackageOverrider
                     }
 
                     string pattern = $@"(""{Regex.Escape(entry.packageName)}""\s*:\s*"")[^""]+("")";
-                    content = Regex.Replace(content, pattern, $"$1{EscapeJsonString(newSource)}$2");
+                    content = Regex.Replace(content, pattern, match =>
+                    {
+                        return match.Groups[1].Value + EscapeJsonString(newSource) + match.Groups[2].Value;
+                    });
                     manifestModified = true;
                 }
 
@@ -499,7 +497,7 @@ namespace PackageOverrider
             if (entry.isEmbedded && !entry.isEmbeddedEnabled)
                 return PackageState.EmbeddedDisabled;
 
-            if (entry.isOverridden && !string.IsNullOrEmpty(entry.overridePath))
+            if (entry.isOverridden)
                 return PackageState.OverrideActive;
 
             return PackageState.PackageCache;
@@ -629,9 +627,10 @@ namespace PackageOverrider
             {
                 string content = File.ReadAllText(ManifestPath, Encoding.UTF8);
                 string pattern = $@"(""{Regex.Escape(entry.packageName)}""\s*:\s*"")[^""]+("")";
-                string replacement = $"$1{EscapeJsonString(newVersion)}$2";
-
-                string newContent = Regex.Replace(content, pattern, replacement);
+                string newContent = Regex.Replace(content, pattern, match =>
+                {
+                    return match.Groups[1].Value + EscapeJsonString(newVersion) + match.Groups[2].Value;
+                });
 
                 if (newContent == content)
                 {
